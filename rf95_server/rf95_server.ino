@@ -19,6 +19,17 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+struct packet{
+  uint16_t droneID;
+  float latitude;
+  float longitude;
+  uint8_t sensorid;
+  float speed;
+  //This should always be 0!
+  uint8_t end;
+
+};
+
 // Blinky on receipt
 #define LED 13
 
@@ -65,16 +76,37 @@ void loop()
 {
   if (rf95.available())
   {
-    // Should be a message for us now   
-    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-    uint8_t len = sizeof(buf);
-    
+
+  /*
+  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+  uint8_t len = sizeof(buf);
+  */
+
+  //Replacing the arbitrary 255-4 buffer lenght with what we need
+  uint8_t buf[sizeof(struct packet)];
+  uint8_t len = sizeof(buf);
+
     if (rf95.recv(buf, &len))
     {
       digitalWrite(LED, HIGH);
       //RH_RF95::printBuffer("Received: ", buf, len);
-      //Serial.print("Got: ");
+      Serial.print("Got: ");
       //Serial.println((char*)buf);
+      
+      struct packet rxPacket;
+     
+
+  Serial.println("=======================");
+
+   Serial.println((char*)buf);
+  Serial.println(sizeof(buf));
+
+
+      memcpy(&rxPacket, &buf, sizeof(rxPacket));
+      Serial.println(rxPacket.droneID);
+      Serial.println(rxPacket.latitude);
+      Serial.println(rxPacket.longitude);
+
       Serial.print("RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
       

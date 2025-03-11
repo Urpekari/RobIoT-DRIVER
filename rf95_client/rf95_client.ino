@@ -16,6 +16,17 @@
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 863.0
 
+struct packet{
+  uint16_t droneID;
+  float latitude;
+  float longitude;
+  uint8_t sensorid;
+  float speed;
+  //This should always be 0!
+  uint8_t end;
+
+};
+
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
@@ -24,7 +35,7 @@ void setup()
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
-  while (!Serial);
+  //while (!Serial);
   Serial.begin(9600);
   delay(100);
 
@@ -64,17 +75,36 @@ void loop()
   //Serial.println("Sending to rf95_server");
   // Send a message to rf95_server
   
-  char radiopacket[20] = "Hello World #      ";
-  itoa(packetnum++, radiopacket+13, 10);
-  Serial.print("Sending "); Serial.println(radiopacket);
-  radiopacket[19] = 0;
-  
-  //Serial.println("Sending..."); delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
 
-  //Serial.println("Waiting for packet to complete..."); delay(10);
+  //Replacing the arbitrary 20 message lenght with what we need
+
+  //char radiopacket[20] = "Hello World #      ";
+  //itoa(packetnum++, radiopacket+13, 10);
+  //Serial.print("Sending "); Serial.println(radiopacket);
+  //radiopacket[19] = 0;
+  
+  struct packet txPacket;
+  txPacket.droneID = 0;
+  txPacket.latitude = 32.3;
+  txPacket.longitude = 33.2;
+
+  uint8_t* radiopacket[sizeof(txPacket)];
+  memcpy(radiopacket, &txPacket, sizeof(txPacket));
+
+  Serial.println(sizeof(txPacket));
+
+  Serial.println("=======================");
+
+  Serial.println((char*)radiopacket);
+  Serial.println(sizeof(radiopacket));
+
+  //Serial.println("Sending..."); delay(10);
+  rf95.send((uint8_t *)radiopacket, sizeof(txPacket));
+
+  Serial.println("Waiting for packet to complete..."); delay(10);
   rf95.waitPacketSent();
   // Now wait for a reply
+
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
