@@ -16,16 +16,17 @@
    then put your PC's IP address in SERVER_IP below, port 9080 (instead of default 80):
 */
 //#define SERVER_IP "10.0.1.7:9080" // PC address with emulation on host
-#define SERVER_IP "192.168.51.27:5000"
+#define SERVER_IP "192.168.1.35:5000"
 
 #ifndef STASSID
-#define STASSID "CrashInternet"
-#define STAPSK "ElectricBogaloo"
+#define STASSID "Portuetxe24"
+#define STAPSK "ErEkIk27Ct"
 #endif
 
 int robiotID = 1;
 float gpsLat = 43.355;
 float gpsLon = -3.126;
+float gpsAlt = 5.5;
 
 void setup() {
 
@@ -66,7 +67,7 @@ void loop() {
     Serial.print("[HTTP] POST...\n");
     // start connection and send HTTP header and body
     char buffer[1024];
-    sprintf(buffer, "{\"hello\":\"world\",\n\"robiotId\":\"%d\",\n\"lat\":\"%.6f\",\n\"lon\":\"%.6f\",\n\"alt\":\"%.6f\"}", robiotID, gpsLat, gpsLon, 5);
+    sprintf(buffer, "{\"robiotId\":\"%d\",\n\"lat\":\"%.6f\",\n\"lon\":\"%.6f\",\n\"alt\":\"%.6f\"}", robiotID, gpsLat, gpsLon, gpsAlt);
     int httpCode = http.POST(buffer);
 
     // httpCode will be negative on error
