@@ -1,10 +1,7 @@
-// LoRa 9x_TX
-// -*- mode: C++ -*-
-// Example sketch showing how to create a simple messaging client (transmitter)
-// with the RH_RF95 class. RH_RF95 class does not provide for addressing or
-// reliability, so you should only use RH_RF95 if you do not need the higher
-// level messaging abilities.
-// It is designed to work with the other example LoRa9x_RX
+
+
+// ROBIOT
+// For Arduino UNO/Nano!
 
 #include <SPI.h>
 #include <RH_RF95.h>
@@ -17,18 +14,30 @@
 #define RF95_FREQ 863.0
 
 struct packet{
-  uint16_t droneID;
-  float latitude;
-  float longitude;
+  uint8_t droneID;
+  int32_t latitude;
+  uint8_t NorthSouth;
+  int32_t longitude;
+  uint8_t EastWest;
+  uint16_t altitude;
+  uint16_t speed;
+  
+  // Keeping track of the packets
+  float time;
+  uint8_t SEQ;
+
+  // TBD how we send data
   uint8_t sensorid;
-  float speed;
+  uint32_t sensorData;
+
   //This should always be 0!
   uint8_t end;
-
 };
 
-// Singleton instance of the radio driver
-RH_RF95 rf95(RFM95_CS, RFM95_INT);
+  // Singleton instance of the radio driver
+  RH_RF95 rf95(RFM95_CS, RFM95_INT);
+
+  struct packet txPacket;
 
 void setup() 
 {
@@ -36,7 +45,7 @@ void setup()
   digitalWrite(RFM95_RST, HIGH);
 
   //while (!Serial);
-  Serial.begin(9600);
+  Serial.begin(74880);
   delay(100);
 
   Serial.println("Arduino LoRa TX Test!");
@@ -49,59 +58,56 @@ void setup()
 
   while (!rf95.init()) {
     Serial.println("LoRa radio init failed");
-    while (1);
+    delay(5);
   }
   Serial.println("LoRa radio init OK!");
 
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
-    while (1);
   }
   Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
-  
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
 
-  // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
-  // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 }
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
 
+uint8_t buf[sizeof(struct packet)];
+
 void loop()
 {
-  //Serial.println("Sending to rf95_server");
-  // Send a message to rf95_server
-  
-
-  //Replacing the arbitrary 20 message lenght with what we need
-
-  //char radiopacket[20] = "Hello World #      ";
-  //itoa(packetnum++, radiopacket+13, 10);
-  //Serial.print("Sending "); Serial.println(radiopacket);
-  //radiopacket[19] = 0;
-  
-  struct packet txPacket;
-  txPacket.droneID = 0;
-  txPacket.latitude = 32.3;
-  txPacket.longitude = 33.2;
+  txPacket.droneID = 1;
+  txPacket.latitude = 43.35 * 10000;
+  txPacket.NorthSouth = 0;
+  txPacket.longitude = 3.1387 * 10000;
+  txPacket.EastWest = 1;
+  txPacket.altitude = 5;
+  txPacket.speed = 20;
+  txPacket.SEQ = SEQ;
+  SEQ ++;
 
   uint8_t* radiopacket[sizeof(txPacket)];
   memcpy(radiopacket, &txPacket, sizeof(txPacket));
 
-  Serial.println(sizeof(txPacket));
-
   Serial.println("=======================");
+  Serial.println(sizeof(float));
 
   Serial.println((char*)radiopacket);
   Serial.println(sizeof(radiopacket));
 
-  //Serial.println("Sending..."); delay(10);
-  rf95.send((uint8_t *)radiopacket, sizeof(txPacket));
+  Serial.println(txPacket.droneID);
+  Serial.println(txPacket.latitude);
+  Serial.println(txPacket.longitude);
 
-  Serial.println("Waiting for packet to complete..."); delay(10);
+  Serial.println("=======================");
+
+  //Serial.println("Sending..."); delay(10);
+  memcpy(&buf, &txPacket, sizeof(txPacket));
+
+  rf95.send((uint8_t *)buf, sizeof(buf));
+  Serial.println(sizeof(radiopacket));
+  Serial.println("Waiting for packet to complete...");delay(10);
   rf95.waitPacketSent();
   // Now wait for a reply
 
@@ -128,5 +134,5 @@ void loop()
   {
     Serial.println("No reply, is there a listener around?");
   }
-  delay(100);
+  delay(1000);
 }
