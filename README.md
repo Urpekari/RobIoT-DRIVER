@@ -14,3 +14,9 @@ LoRa-based general purpose control system
 (This should be enhanced and automated in a future release)
 - Adjust the IP addresses/URLs of any scripts to match your exact deployment in the following files:
   - rf95_server.ino
+ 
+- Adjust the gwids of any scripts to match your exact deployment in the following files:
+  - rf95_server.ino
+
+- Adjust the droneIDs of any scripts to match your exact deployment in the following files:
+  - rf95_client.ino
